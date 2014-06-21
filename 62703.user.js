@@ -1,12 +1,13 @@
 // ==UserScript==
-// @name          OKCupid questions downloader (data compat: v2)
-// @namespace     tag:brainonfire.net,2009-11-17:okcupid-questions-downloader
-// @description   Download your answers to OKCupid match questions as JSON. (This takes a while.) http://www.okcupid.com/questions
-// @todo          Read created questions
-// @include       http://www.okcupid.com/questions
-// @require       http://code.jquery.com/jquery-1.3.2.js
-// @version       2.2
-// @changelog     Since 2.1: Actually output JSON, not just serialized JS.
+// @name         OKCupid questions downloader (data compat: v2)
+// @namespace    tag:brainonfire.net,2009-11-17:okcupid-questions-downloader
+// @description  Download your answers to OKCupid match questions as JSON. (This takes a while.) http://www.okcupid.com/questions
+// @todo         Read created questions
+// @include      http://www.okcupid.com/questions
+// @require      http://code.jquery.com/jquery-1.3.2.js
+// @version      2.2
+// @changelog    Since 2.1: Actually output JSON, not just serialized JS.
+// @grant        none
 // ==/UserScript==
 
 // For Greasemonkey users
