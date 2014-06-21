@@ -3,11 +3,11 @@
 // @namespace    tag:brainonfire.net,2009-11-17:okcupid-questions-downloader
 // @description  Download your answers to OKCupid match questions as JSON. (This takes a while.) http://www.okcupid.com/questions
 // @todo         Read created questions
-// @include      http://www.okcupid.com/questions
+// @include      http://www.okcupid.com/profile/*/questions?cf=profile
 // @require      http://code.jquery.com/jquery-1.3.2.js
 // @version      2.2
 // @changelog    Since 2.1: Actually output JSON, not just serialized JS.
-// @grant        none
+// @grant        GM_registerMenuCommand
 // ==/UserScript==
 
 // For Greasemonkey users
@@ -44,7 +44,7 @@ function main() {
 	makeGUI();
 	hasStarted = true; // uncomment this to prevent full run (will make GUI and ask for one page)
 
-	prepForScrape_();
+	// prepForScrape_();
 }
 
 /**
