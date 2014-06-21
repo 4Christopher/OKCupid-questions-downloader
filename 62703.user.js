@@ -53,31 +53,31 @@ function makeGUI() {
 	infobox = document.createElement('div');
 	infobox.id = "qdown-info";
 	$(infobox).css({border:"1px solid black", position:"absolute", width:"500px", right:"0px", top:"0px", "background-color":"#aaa", opacity:".9", "z-index":300});
-	
+
 	statusLine = document.createElement('p');
 	$(statusLine).css({border:"3px solid black", font:"bold 15px monospace", padding:"5px", "min-height":"3em"})
 	             .text("Initializing...");
 	infobox.appendChild(statusLine);
-	
+
 	eventList = document.createElement('ol');
 	$(eventList).css({border:"1px solid green", "overflow-y":"scroll", height:"6em", margin:"5px auto", width:"95%"});
 	infobox.appendChild(eventList);
-	
+
 	outputBox = document.createElement('textarea');
 	outputBox.setAttribute('rows', 10);
 	$(outputBox).css({width:"95%", display:'block', margin:"10px auto"});
 	outputBox.value = "Output JSON will appear here..."
 	infobox.appendChild(outputBox);
-	
+
 	loaderFrame = document.createElement('iframe');
 	loaderFrame.id = "qdown-loader";
 	$(loaderFrame).css({width:"95%", display:'block', margin:"5px auto", border:"1px solid yellow", height:"100px"});
 	infobox.appendChild(loaderFrame);
 
 	document.body.appendChild(infobox);
-	
+
 	// activate
-	
+
 	loaderFrame.addEventListener('load', receivePage_, false);
 }
 
@@ -93,7 +93,7 @@ function finish()
 	                          version: 2, /*# Integer:2 #*/
 	                          date: new Date().toUTCString() /*# String (date in RFC 822 with UTC timezone) #*/
 	});
-	
+
 	updateStatus('Done!');
 }
 
@@ -109,7 +109,7 @@ function prepForScrape_()
 	GM_log('Starting stage '+stage+': '+questCats[stage]);
 
 	curLow = 1;
-	
+
 	scrapeRest_();
 }
 
@@ -119,7 +119,7 @@ function prepForScrape_()
 function scrapeRest_()
 {
 	updateStatus('Requesting at most '+nominalPerPage+' questions starting at #'+curLow);
-	
+
 	loaderFrame.src = '/questions?low='+curLow+'&'+questCats[stage]+'=1'; // goto 2 (trigger)
 }
 
@@ -131,15 +131,15 @@ function receivePage_()
 	if(!hasStarted) {
 		return; // don't fire for initializing iframe
 	}
-	
+
 	updateStatus('Loaded page starting at '+curLow);
-	
+
 	var qs = jQuery(".questions .question", loaderFrame.contentDocument);
 	if(qs.length == 0) {
 		return bumpStage_(); // goto 3
 	}
 	qs.each(processQuestion);
-	
+
 	curLow += pageBy;
 	scrapeRest_(); // goto 1
 }
@@ -154,7 +154,7 @@ function processQuestion(i, el) {
 	var isSkipped = $q.hasClass('not_answered');
 
 	var explanation = null;
-	var isPublic = null;	
+	var isPublic = null;
 	var importance = null;
 	var answers = null;
 
@@ -198,7 +198,7 @@ function bumpStage_() {
 	if(stage >= questCats.length) {
 		return finish();
 	}
-	
+
 	prepForScrape_(); // goto 0
 }
 
@@ -213,7 +213,7 @@ function updateStatus(msg)
 {
 	GM_log('Status: ' + msg);
 	$(statusLine).text(msg);
-	
+
 	var line = document.createElement('li');
 	line.appendChild(document.createTextNode(msg));
 	eventList.appendChild(line);
