@@ -48,9 +48,7 @@ function main() {
 }
 main();
 
-/**
- * Create infobox and loader frame.
- */
+// Create infobox and loader frame {{{
 function makeGUI() {
 	// Create info box {{{
 	infobox = document.createElement('div');
@@ -119,14 +117,14 @@ function makeGUI() {
 
 	loaderFrame.addEventListener('load', receivePage_, false);
 }
+// }}}
 
 /**
  * Finish XHR chain, display results.
  */
-function finish()
-{
-  // Remove this line for older Firefox and Chrome that don't have JSON object:
-  var uneval = JSON.stringify;
+function finish() {
+	// Remove this line for older Firefox and Chrome that don't have JSON object:
+	var uneval = JSON.stringify;
 
 	outputBox.value = uneval({data: questions, /*# Questions #*/
 	                          version: 2, /*# Integer:2 #*/
@@ -143,8 +141,7 @@ function finish()
 /**
  * 0. Gather required info for scraping answered questions.
  */
-function prepForScrape_()
-{
+function prepForScrape_() {
 	GM_log('Starting stage '+stage+': '+questCats[stage]);
 
 	curLow = 1;
@@ -155,8 +152,7 @@ function prepForScrape_()
 /**
  * 1. Start a request for the current offset.
  */
-function scrapeRest_()
-{
+function scrapeRest_() {
 	updateStatus('Requesting at most '+nominalPerPage+' questions starting at #'+curLow);
 
 	loaderFrame.src = '/questions?low='+curLow+'&'+questCats[stage]+'=1'; // goto 2 (trigger)
@@ -165,8 +161,7 @@ function scrapeRest_()
 /**
  * 2. Harvest data from loaded page.
  */
-function receivePage_()
-{
+function receivePage_() {
 	if(!hasStarted) {
 		return; // don't fire for initializing iframe
 	}
@@ -248,9 +243,8 @@ function bumpStage_() {
 /**
  * Update the status text.
  */
-function updateStatus(msg)
-{
-	GM_log('Status: ' + msg);
+function updateStatus(msg) {
+	console.log('Status: ' + msg);
 	$(statusLine).text(msg);
 
 	var line = document.createElement('li');
