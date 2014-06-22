@@ -1,12 +1,13 @@
 // ==UserScript==
 // @author       Tim McCormack
+// @license      Unknown
 // @name         OKCupid questions downloader (data compat: v2)
 // @namespace    tag:brainonfire.net,2009-11-17:okcupid-questions-downloader
 // @description  Download your answers to OKCupid match questions as JSON. (This takes a while.) http://www.okcupid.com/questions
 // @todo         Read created questions
-// @include      /^https?://www\.okcupid\.com/(?:profile/.*/)?questions\?.*$/
+// @include      /^https?://www\.okcupid\.com/(?:profile/.*/)?questions.*$/
 // @require      http://code.jquery.com/jquery-1.3.2.js
-// @version      2.2
+// @version      2.3 testing
 // @changelog    Since 2.1: Actually output JSON, not just serialized JS.
 // @grant        GM_registerMenuCommand
 // ==/UserScript==
@@ -22,7 +23,8 @@ var username;
 // constants
 var nominalPerPage = 10;
 var pageBy = nominalPerPage - 2;
-var questCats = ['recent', 'skipped']; // indexed by `stage`
+// var questCats = ['recent', 'skipped']; // indexed by `stage`
+var questCats = ['skipped']; // indexed by `stage`
 
 // DOM
 var loaderFrame;
@@ -33,9 +35,11 @@ var outputBox;
 
 // state
 var curLow;
-var questions = {};
-var stage = 0;
-var hasStarted = false;
+var questions    = {};
+var stage        = 0;
+var hasStarted   = true;
+var testing_mode = false;
+var debug_mode   = false;
 
 /**
  * Run main sequence.
@@ -44,7 +48,9 @@ function main() {
 	username = unsafeWindow.SCREENNAME;
 	makeGUI();
 
-	hasStarted = true; // uncomment this to prevent full run (will make GUI and ask for one page)
+	// hasStarted = false; // uncomment this to prevent full run (will make GUI and ask for one page)
+	// testing_mode = true; // uncomment to only evaluate one page.
+	debug_mode = true; // uncomment to get debug output.
 
 	// activate
 	loaderFrame.addEventListener('load', receivePage_, false);
@@ -135,10 +141,13 @@ function finish() {
 	// Remove this line for older Firefox and Chrome that don't have JSON object:
 	var uneval = JSON.stringify;
 
-	outputBox.value = uneval({data: questions, /*# Questions #*/
-	                          version: 2, /*# Integer:2 #*/
-	                          date: new Date().toUTCString() /*# String (date in RFC 822 with UTC timezone) #*/
-	});
+	outputBox.value = uneval(
+			{
+				data    : questions,               /*# Questions #*/
+				version : 2,                       /*# Integer: 2 #*/
+				date    : new Date().toUTCString() /*# String (date in RFC 822 with UTC timezone) #*/
+			}
+		);
 
 	updateStatus('Done!');
 }
@@ -153,7 +162,11 @@ function finish() {
 function prepForScrape_() {
 	console.log('Starting stage '+stage+': '+questCats[stage]);
 
-	curLow = 1;
+	if (testing_mode) {
+		curLow = 100;
+	} else {
+		curLow = 1;
+	}
 
 	scrapeRest_();
 }
@@ -164,8 +177,11 @@ function prepForScrape_() {
 function scrapeRest_() {
 	updateStatus('Requesting at most '+nominalPerPage+' questions starting at #'+curLow);
 
-	// loaderFrame.src = '/questions?low='+curLow+'&'+questCats[stage]+'=1'; // goto 2 (trigger)
-	loaderFrame.src = '/questions?self_notes=1'; // goto 2 (trigger)
+	if (testing_mode) { // Use self_notes in testing mode to show questions on which you added notes.
+		loaderFrame.src = '/questions?self_notes=1'; // goto 2 (trigger)
+	} else {
+		loaderFrame.src = '/questions?low='+curLow+'&'+questCats[stage]+'=1'; // goto 2 (trigger)
+	}
 }
 
 /**
@@ -178,15 +194,19 @@ function receivePage_() {
 
 	updateStatus('Loaded page starting at '+curLow);
 
+	// Does not stop because even on a empty page there is a question embedded.
 	var qs = jQuery(".questions .question", loaderFrame.contentDocument);
 	if(qs.length == 0) {
 		console.log('length == 0');
 		return bumpStage_(); // goto 3
 	}
+	console.log(qs.length)
 	qs.each(processQuestion);
 
-	// curLow += pageBy;
-	// scrapeRest_(); // goto 1
+	curLow += pageBy;
+	if (!testing_mode) {
+		scrapeRest_(); // goto 1
+	}
 }
 
 function processQuestion(i, el) {
@@ -195,11 +215,13 @@ function processQuestion(i, el) {
 	var $q = jQuery(el);
 
 	var qID = $q.attr('id').replace(/^question_([0-9]+)$/, '$1');
-	console.log('Parsing question: ' + qID);
 	var qHTML = $q.find('div.qtext > p').html();
-	console.log('\tQuestion text is: ' + qHTML);
 	var isSkipped = $q.hasClass('not_answered');
-	// console.log('\tQuestion skipped: ' + isSkipped);
+	if (debug_mode) {
+		// console.log('Parsing question: ' + qID);
+		console.log('\tQuestion text is: ' + qHTML);
+		console.log('\tQuestion skipped: ' + isSkipped);
+	}
 
 	var explanation = null;
 	var isPublic    = null;
@@ -209,14 +231,18 @@ function processQuestion(i, el) {
 	if(!isSkipped) {
 		if ($q.hasClass('has_explanation')) {
 			explanation = $q.find('div.your_explanation > p.value').text() || null;
-			console.log('\tExplanation: ' + explanation);
+			if (debug_mode) {
+				// console.log('\tExplanation: ' + explanation);
+			}
 		}
 		isPublic = $q.hasClass('public');
-		console.log('\tIs public: ' + isSkipped);
-		var importance_internal_number = Number($q.find('label.checked').attr('for').replace(new RegExp("^my_answer_([0-9])_" + qID), '$1'));
-		console.log('\tImportance internal number: ' + importance_internal_number);
+		var importance_internal_number = Number($q.find('div.importance_radios > label.checked').attr('data-count'));
 		importance = 5 - importance_internal_number; // regularize from [4,1] to [0,4]
-		console.log('\tImportance converted number: ' + importance);
+		if (debug_mode) {
+			// console.log('\tIs public: ' + isPublic);
+			// console.log('\tImportance internal number: ' + importance_internal_number);
+			// console.log('\tImportance converted number: ' + importance);
+		}
 		answers = {};
 		$q.find('.self_answers > li').each(function processAnswer(i, el) {
 			var $a       = $(el);
@@ -233,14 +259,12 @@ function processQuestion(i, el) {
 	}
 
 	questions[qID] = {
-		text: qHTML, /*# String #*/
-		isSkipped: isSkipped, /*# Boolean #*/
-		/*# Null if isSkipped */
+		text: qHTML,              /*# String #*/
+		isSkipped: isSkipped,     /*# Boolean # Null if isSkipped */
 		explanation: explanation, /*# String #*/
-		isPublic: isPublic, /*# Boolean #*/
-		importance: importance, /*# Integer:[0,4] (irrelevant to mandatory) #*/
-		answers: answers /*# Answers #*/
-		/* #*/
+		isPublic: isPublic,       /*# Boolean #*/
+		importance: importance,   /*# Integer:[0,4] (irrelevant to mandatory) #*/
+		answers: answers          /*# Answers #*/
 	};
 	finish();
 }
@@ -252,9 +276,6 @@ function bumpStage_() {
 	updateStatus("Done with stage "+stage+": "+questCats[stage]);
 	stage++;
 	if(stage >= questCats.length) {
-		return finish();
-	} else {
-		alert('fixme');
 		return finish();
 	}
 
