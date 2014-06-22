@@ -3,7 +3,7 @@
 // @namespace    tag:brainonfire.net,2009-11-17:okcupid-questions-downloader
 // @description  Download your answers to OKCupid match questions as JSON. (This takes a while.) http://www.okcupid.com/questions
 // @todo         Read created questions
-// @include      http://www.okcupid.com/profile/*/questions?cf=profile
+// @includeTESTING      http://www.okcupid.com/profile/*/questions?cf=profile
 // @require      http://code.jquery.com/jquery-1.3.2.js
 // @version      2.2
 // @changelog    Since 2.1: Actually output JSON, not just serialized JS.
@@ -16,7 +16,7 @@ GM_registerMenuCommand("Harvest question data", main);
 $('.questions').prevAll('h2').append(" <button>Export</button>").find('button').click(main);
 
 // personal
-//var username;
+var username;
 
 // constants
 var nominalPerPage = 10;
@@ -40,40 +40,78 @@ var hasStarted = false;
  * Run main sequence.
  */
 function main() {
-//	username = unsafeWindow.SCREENNAME;
+	username = unsafeWindow.SCREENNAME;
 	makeGUI();
 	hasStarted = true; // uncomment this to prevent full run (will make GUI and ask for one page)
 
 	// prepForScrape_();
 }
+main();
 
 /**
  * Create infobox and loader frame.
  */
 function makeGUI() {
+	// Create info box {{{
 	infobox = document.createElement('div');
 	infobox.id = "qdown-info";
-	$(infobox).css({border:"1px solid black", position:"absolute", width:"500px", right:"0px", top:"0px", "background-color":"#aaa", opacity:".9", "z-index":300});
+	$(infobox).css(
+			{
+				border             : "1px solid black",
+				position           : "absolute",
+				width              : "500px",
+				right              : "0px",
+				top                : "0px",
+				"background-color" : "#aaa",
+				opacity            : ".9",
+				"z-index"          : 300
+			}
+		);
+	// }}}
 
+	// statusLine {{{
 	statusLine = document.createElement('p');
-	$(statusLine).css({border:"3px solid black", font:"bold 15px monospace", padding:"5px", "min-height":"3em"})
-	             .text("Initializing...");
+	$(statusLine).css(
+			{
+				border       : "3px solid black",
+				font         : "bold 15px monospace",
+				padding      : "5px",
+				"min-height" : "3em"
+			}
+		).text("Initializing...");
 	infobox.appendChild(statusLine);
 
 	eventList = document.createElement('ol');
-	$(eventList).css({border:"1px solid green", "overflow-y":"scroll", height:"6em", margin:"5px auto", width:"95%"});
+	$(eventList).css(
+			{
+				border       : "1px solid green",
+				"overflow-y" : "scroll",
+				height       : "6em",
+				margin       : "5px auto",
+				width        : "95%"
+			}
+		);
 	infobox.appendChild(eventList);
+	// }}}
 
+	// outputBox {{{
 	outputBox = document.createElement('textarea');
 	outputBox.setAttribute('rows', 10);
-	$(outputBox).css({width:"95%", display:'block', margin:"10px auto"});
-	outputBox.value = "Output JSON will appear here..."
+	$(outputBox).css(
+			{
+				width   : "95%",
+				display : 'block',
+				margin  : "10px auto"
+			}
+		);
+	outputBox.value = "Output JSON will appear here...";
 	infobox.appendChild(outputBox);
 
 	loaderFrame = document.createElement('iframe');
 	loaderFrame.id = "qdown-loader";
 	$(loaderFrame).css({width:"95%", display:'block', margin:"5px auto", border:"1px solid yellow", height:"100px"});
 	infobox.appendChild(loaderFrame);
+	// }}}
 
 	document.body.appendChild(infobox);
 
