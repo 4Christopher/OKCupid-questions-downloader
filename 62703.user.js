@@ -197,32 +197,36 @@ function processQuestion(i, el) {
 	var qID = $q.attr('id').replace(/^question_([0-9]+)$/, '$1');
 	console.log('Parsing question: ' + qID);
 	var qHTML = $q.find('div.qtext').find('p').html();
-	// console.log('\tQuestion text is: ' + qHTML);
+	console.log('\tQuestion text is: ' + qHTML);
 	var isSkipped = $q.hasClass('not_answered');
 	// console.log('\tQuestion skipped: ' + isSkipped);
 
 	var explanation = null;
-	var isPublic = null;
-	var importance = null;
-	var answers = null;
+	var isPublic    = null;
+	var importance  = null;
+	var answers     = null;
 
 	if(!isSkipped) {
-		explanation = $q.find('div.your_explanation').find('p.value').text() | null;
-		console.log('\tExplanation: ' + isSkipped);
+		if ($q.hasClass('has_explanation')) {
+			explanation = $q.find('div.your_explanation > p.value').text() || null;
+			console.log('\tExplanation: ' + explanation);
+		}
 		isPublic = $q.hasClass('public');
 		console.log('\tIs public: ' + isSkipped);
-		importance = 5 - Number($q.find('input#question_'+qID+'_importance').attr('value')); // regularize from [5,1] to [0,4]
+		console.log('\tImportance: ' + $q.find('label#checked').attr());
+		console.log($q.find('label#checked').attr());
+		importance = 5 - Number($q.find('input#checked').attr('for')); // regularize from [5,1] to [0,4]
 		answers = {};
 		$q.find('.self_answers > li').each(function processAnswer(i, el) {
-			var $a = $(el);
-			var aID = Number($a.attr('id').replace(/.*_/gi, ''));
-			var aText = $a.html();
-			var isMine = $a.hasClass('mine');
-			var isMatch = $a.hasClass('match');
+			var $a       = $(el);
+			var aID      = Number($a.attr('id').replace(/.*_/gi, ''));
+			var aText    = $a.html();
+			var isMine   = $a.hasClass('mine');
+			var isMatch  = $a.hasClass('match');
 			answers[aID] = {
-				text: aText, /*# String #*/
-				isMine: isMine, /*# Boolean (true if I answered this way) #*/
-				isMatch: isMatch /*# Boolean (true if ideal match would answer this way) #*/
+				text    : aText,  /*# String #*/
+				isMine  : isMine, /*# Boolean (true if I answered this way) #*/
+				isMatch : isMatch /*# Boolean (true if ideal match would answer this way) #*/
 			};
 		});
 	}
