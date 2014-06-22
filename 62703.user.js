@@ -1,9 +1,10 @@
 // ==UserScript==
+// @author       Tim McCormack
 // @name         OKCupid questions downloader (data compat: v2)
 // @namespace    tag:brainonfire.net,2009-11-17:okcupid-questions-downloader
 // @description  Download your answers to OKCupid match questions as JSON. (This takes a while.) http://www.okcupid.com/questions
 // @todo         Read created questions
-// @includeTESTING      http://www.okcupid.com/profile/*/questions?cf=profile
+// @include      /^https?://www\.okcupid\.com/(?:profile/.*/)?questions\?.*$/
 // @require      http://code.jquery.com/jquery-1.3.2.js
 // @version      2.2
 // @changelog    Since 2.1: Actually output JSON, not just serialized JS.
@@ -42,11 +43,15 @@ var hasStarted = false;
 function main() {
 	username = unsafeWindow.SCREENNAME;
 	makeGUI();
+
 	hasStarted = true; // uncomment this to prevent full run (will make GUI and ask for one page)
 
-	// prepForScrape_();
+	// activate
+	loaderFrame.addEventListener('load', receivePage_, false);
+
+	prepForScrape_();
 }
-main();
+// main();
 
 // Create infobox and loader frame {{{
 function makeGUI() {
@@ -107,15 +112,19 @@ function makeGUI() {
 
 	loaderFrame = document.createElement('iframe');
 	loaderFrame.id = "qdown-loader";
-	$(loaderFrame).css({width:"95%", display:'block', margin:"5px auto", border:"1px solid yellow", height:"100px"});
+	$(loaderFrame).css(
+			{
+				width:"95%",
+				display:'block',
+				margin:"5px auto",
+				border:"1px solid yellow",
+				height:"100px"
+			}
+		);
 	infobox.appendChild(loaderFrame);
 	// }}}
 
 	document.body.appendChild(infobox);
-
-	// activate
-
-	loaderFrame.addEventListener('load', receivePage_, false);
 }
 // }}}
 
@@ -142,7 +151,7 @@ function finish() {
  * 0. Gather required info for scraping answered questions.
  */
 function prepForScrape_() {
-	GM_log('Starting stage '+stage+': '+questCats[stage]);
+	console.log('Starting stage '+stage+': '+questCats[stage]);
 
 	curLow = 1;
 
@@ -155,7 +164,8 @@ function prepForScrape_() {
 function scrapeRest_() {
 	updateStatus('Requesting at most '+nominalPerPage+' questions starting at #'+curLow);
 
-	loaderFrame.src = '/questions?low='+curLow+'&'+questCats[stage]+'=1'; // goto 2 (trigger)
+	// loaderFrame.src = '/questions?low='+curLow+'&'+questCats[stage]+'=1'; // goto 2 (trigger)
+	loaderFrame.src = '/questions?self_notes=1'; // goto 2 (trigger)
 }
 
 /**
@@ -170,12 +180,13 @@ function receivePage_() {
 
 	var qs = jQuery(".questions .question", loaderFrame.contentDocument);
 	if(qs.length == 0) {
+		console.log('length == 0');
 		return bumpStage_(); // goto 3
 	}
 	qs.each(processQuestion);
 
-	curLow += pageBy;
-	scrapeRest_(); // goto 1
+	// curLow += pageBy;
+	// scrapeRest_(); // goto 1
 }
 
 function processQuestion(i, el) {
@@ -184,8 +195,11 @@ function processQuestion(i, el) {
 	var $q = jQuery(el);
 
 	var qID = $q.attr('id').replace(/^question_([0-9]+)$/, '$1');
-	var qHTML = $q.find('p.qtext').html();
+	console.log('Parsing question: ' + qID);
+	var qHTML = $q.find('div.qtext').find('p').html();
+	// console.log('\tQuestion text is: ' + qHTML);
 	var isSkipped = $q.hasClass('not_answered');
+	// console.log('\tQuestion skipped: ' + isSkipped);
 
 	var explanation = null;
 	var isPublic = null;
@@ -193,8 +207,10 @@ function processQuestion(i, el) {
 	var answers = null;
 
 	if(!isSkipped) {
-		explanation = $q.find('.explanation').text() | null;
+		explanation = $q.find('div.your_explanation').find('p.value').text() | null;
+		console.log('\tExplanation: ' + isSkipped);
 		isPublic = $q.hasClass('public');
+		console.log('\tIs public: ' + isSkipped);
 		importance = 5 - Number($q.find('input#question_'+qID+'_importance').attr('value')); // regularize from [5,1] to [0,4]
 		answers = {};
 		$q.find('.self_answers > li').each(function processAnswer(i, el) {
@@ -221,6 +237,7 @@ function processQuestion(i, el) {
 		answers: answers /*# Answers #*/
 		/* #*/
 	};
+	finish();
 }
 
 /**
@@ -230,6 +247,9 @@ function bumpStage_() {
 	updateStatus("Done with stage "+stage+": "+questCats[stage]);
 	stage++;
 	if(stage >= questCats.length) {
+		return finish();
+	} else {
+		alert('fixme');
 		return finish();
 	}
 
