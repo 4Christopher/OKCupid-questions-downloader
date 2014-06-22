@@ -196,7 +196,7 @@ function processQuestion(i, el) {
 
 	var qID = $q.attr('id').replace(/^question_([0-9]+)$/, '$1');
 	console.log('Parsing question: ' + qID);
-	var qHTML = $q.find('div.qtext').find('p').html();
+	var qHTML = $q.find('div.qtext > p').html();
 	console.log('\tQuestion text is: ' + qHTML);
 	var isSkipped = $q.hasClass('not_answered');
 	// console.log('\tQuestion skipped: ' + isSkipped);
@@ -213,9 +213,10 @@ function processQuestion(i, el) {
 		}
 		isPublic = $q.hasClass('public');
 		console.log('\tIs public: ' + isSkipped);
-		console.log('\tImportance: ' + $q.find('label#checked').attr());
-		console.log($q.find('label#checked').attr());
-		importance = 5 - Number($q.find('input#checked').attr('for')); // regularize from [5,1] to [0,4]
+		var importance_internal_number = Number($q.find('label.checked').attr('for').replace(new RegExp("^my_answer_([0-9])_" + qID), '$1'));
+		console.log('\tImportance internal number: ' + importance_internal_number);
+		importance = 5 - importance_internal_number; // regularize from [4,1] to [0,4]
+		console.log('\tImportance converted number: ' + importance);
 		answers = {};
 		$q.find('.self_answers > li').each(function processAnswer(i, el) {
 			var $a       = $(el);
