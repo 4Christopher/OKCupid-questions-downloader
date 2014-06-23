@@ -1,6 +1,6 @@
 // ==UserScript==
 // @author       Tim McCormack
-// @license      Unknown
+// @license      Eclipse Public License (EPL)
 // @name         OKCupid questions downloader (data compat: v2)
 // @namespace    tag:brainonfire.net,2009-11-17:okcupid-questions-downloader
 // @description  Download your answers to OKCupid match questions as JSON. (This takes a while.) http://www.okcupid.com/questions
