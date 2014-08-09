@@ -23,8 +23,9 @@ var username;
 // constants
 var nominalPerPage = 10;
 var pageBy = nominalPerPage - 2;
+var questCats = ['recent']; // indexed by `stage`
 // var questCats = ['recent', 'skipped']; // indexed by `stage`
-var questCats = ['skipped']; // indexed by `stage`
+// var questCats = ['skipped']; // indexed by `stage`
 
 // DOM
 var loaderFrame;
@@ -264,7 +265,8 @@ function processQuestion(i, el) {
 		explanation: explanation, /*# String #*/
 		isPublic: isPublic,       /*# Boolean #*/
 		importance: importance,   /*# Integer:[0,4] (irrelevant to mandatory) #*/
-		answers: answers          /*# Answers #*/
+		answers: answers,         /*# Answers #*/
+		lowNumber: curLow		  /*# On which page. OkCupid does not search you for questions which you might want to do if you want to change your answer. #*/
 	};
 	finish();
 }
