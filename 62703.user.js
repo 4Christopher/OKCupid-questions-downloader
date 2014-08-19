@@ -1,5 +1,6 @@
 // ==UserScript==
 // @author       Tim McCormack
+// @maintainer   Christopher <4Christopher@gmx.de>
 // @license      Eclipse Public License (EPL)
 // @name         OKCupid questions downloader (data compat: v2)
 // @namespace    tag:brainonfire.net,2009-11-17:okcupid-questions-downloader
