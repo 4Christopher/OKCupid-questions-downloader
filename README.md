@@ -20,3 +20,7 @@ If you are like me you will probably want to keep your answers under version con
 
 * Write a script to take this data and answer questions based on it! (Basically, an importer to match this exporter.)
 * Harvest questions you created.
+
+## Related projects
+
+For downloading messages from OkCupid, I can recommend the [OkCupid-Message-Downloader](https://github.com/lehrblogger/OkCupid-Message-Downloader).
